@@ -1,0 +1,17 @@
+{
+  "name": "jstruct",
+  "version": "1.0.0",
+  "description": "Structures Array binary tool for JS",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --experimental-modules test.js"
+  },
+  "keywords": [
+    "JS",
+    "javascript",
+    "binary",
+    "struct"
+  ],
+  "author": "helixd",
+  "license": "MIT"
+}
