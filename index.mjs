@@ -10,10 +10,10 @@ class AccessView {
     //get(ptr = 0){ return this.type.get(this._handle(),this.ptr+ptr); }
     set value(a){ this._handle();
         if (Array.isArray(a)) {
-            for (let i in a) { this.type.set(this.handle,a[i],this.ptr+i); };
+            for (let i in a) { this.type.set(this.handle,a[i],this.ptr+i); }
         } else {
             this.type.set(this.handle,a,this.ptr);
-        };
+        }
     }
     get value(){ return this.type.get(this._handle(),this.ptr); }
     get buffer(){ return this._handle().buffer; }
@@ -34,11 +34,11 @@ class StructView {
         let observer = this.observer || {_handler: handler};
         if (!this.observer) { for (let f of this.type.fields) {
             Object.defineProperty(observer, f.name, {
-                get: function() { return handler[f.name].value; },
-                set: function(v) { handler[f.name].value = v; },
+                get: () => { return handler[f.name].value; },
+                set: (v) => { handler[f.name].value = v; },
                 //writable: false
             });
-        };};
+        }}
         return (this.observer = observer);
     }
     get value(){ return this._handle(); }
@@ -73,19 +73,20 @@ class Struct {
             f.byteOffset = this.BYTES_PER_ELEMENT;
             this.BYTES_PER_ELEMENT += f.BYTES_PER_ELEMENT;
         }
-    };
+    }
     field(f){ f.byteOffset = this.BYTES_PER_ELEMENT; this.BYTES_PER_ELEMENT += f.BYTES_PER_ELEMENT; this.fields.push(f); return this; }
     get byteLength(){ return BYTES_PER_ELEMENT; }
     observe(buffer, ptr = 0){ 
         let f = this;
         return new StructView({type: this, buffer, byteOffset: f.BYTES_PER_ELEMENT*ptr + f.byteOffset, length: f.length}); 
-    };
+    }
     set(view, a, ptr = 0){
         
         //view[ptr] = a;
     }
 }
 
+// generic types 
 let U8 = (name="",length=1)=>{return new Field({type:Uint8Array,name,length});};
 let I8 = (name="",length=1)=>{return new Field({type:Int8Array,name,length});};
 let U16 = (name="",length=1)=>{return new Field({type:Uint16Array,name,length});};
@@ -95,4 +96,12 @@ let I32 = (name="",length=1)=>{return new Field({type:Int32Array,name,length});}
 let F32 = (name="",length=1)=>{return new Field({type:Float32Array,name,length});};
 let F64 = (name="",length=1)=>{return new Field({type:Float64Array,name,length});};
 
-export {Struct, Field, StructView, AccessView, U8, I8, U16, I16, U32, I32, F32, F64};
+// new types 
+let U64 = (name="",length=1)=>{return new Field({type:BigUint64Array,name,length});};
+let I64 = (name="",length=1)=>{return new Field({type:BigInt64Array,name,length});};
+
+// planned Int128 and Uint128 support
+let U128 = (name="",length=1)=>{return new Field({type:BigUint64Array,name,length});};
+let I128 = (name="",length=1)=>{return new Field({type:BigInt64Array,name,length});};
+
+export {Struct, Field, StructView, AccessView, U8, I8, U16, I16, U32, I32, F32, F64, U64, I64};
