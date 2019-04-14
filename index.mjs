@@ -3,9 +3,7 @@ class AccessView {
     constructor({type, buffer, byteOffset = 0, length = 1, ptr = 0}) {
         this.type = type, this.handle = new type.type(buffer, byteOffset, length), this.ptr = ptr;
     }
-    _handle(){
-        return this.handle;
-    }
+    _handle(){ return this.handle; }
     //set(ptr = 0){ this.ptr = ptr; return this; }
     //get(ptr = 0){ return this.type.get(this._handle(),this.ptr+ptr); }
     set value(a){ this._handle();
@@ -15,6 +13,7 @@ class AccessView {
             this.type.set(this.handle,a,this.ptr);
         }
     }
+    get length(){ return this.handle.length; }
     get value(){ return this.type.get(this._handle(),this.ptr); }
     get buffer(){ return this._handle().buffer; }
     get byteLength(){ return this.this.type.BYTES_PER_ELEMENT*this.length; }
@@ -22,19 +21,19 @@ class AccessView {
 }
 
 class StructView {
-    constructor({type, buffer, byteOffset = 0, ptr = 0}) {
-        this.buffer = buffer, this.type = type, this.byteOffset = byteOffset, this.ptr = ptr, this.length = 1;
+    constructor({type, buffer, byteOffset = 0, length = 1, ptr = 0}) {
+        this.buffer = buffer, this.type = type, this.byteOffset = byteOffset, this.length = length, this.ptr = ptr;
     }
     _handle(){
         let handler = this.handle || {};
         if (!this.handle) { for (let f of this.type.fields) {
             handler[f.name] = new (f.struct ? StructView : AccessView)({type: f, buffer: this.buffer, byteOffset: this.type.BYTES_PER_ELEMENT*this.ptr + this.byteOffset + f.byteOffset, length: f.length});
-        };};
+        }}
         this.handle = handler;
         let observer = this.observer || {_handler: handler};
         if (!this.observer) { for (let f of this.type.fields) {
             Object.defineProperty(observer, f.name, {
-                get: () => { return handler[f.name].value; },
+                get: ( ) => { return handler[f.name].value; },
                 set: (v) => { handler[f.name].value = v; },
                 //writable: false
             });
