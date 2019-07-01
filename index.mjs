@@ -1,4 +1,4 @@
-
+/*
 class AccessView {
     constructor({type, buffer, byteOffset = 0, length = 1, ptr = 0}) {
         this.type = type, this.handle = new type.type(buffer, byteOffset, length), this.ptr = ptr;
@@ -84,23 +84,66 @@ class Struct {
         //view[ptr] = a;
     }
 }
+*/
+
+
+class ValueType {
+    constructor(type,count=1){
+        this.type = type, this.count = 1;
+    }
+    accessView(obj,name,ptr) {
+        obj[name+"*"] = ptr;
+        Object.defineProperty(obj, name, {
+            get: ( ) => { return ptr[0]; },
+            set: (v) => { ptr[0] = v; },
+        });
+    }
+    construct(AB,offset=0,count=this.count) {
+        return this.type.construct(AB,offset,count);
+    }
+    get sizeof(){ return this.type.sizeof * this.count; };
+};
+
+class ArrayType {
+    constructor(type,count=1){
+        this.type = type, this.count = count;
+    }
+    accessView(obj,name,ptr) { obj[name+"*"] = ptr, obj[name] = ptr; }
+    construct(AB,offset=0,count=this.count) {
+        return this.type.construct(AB,offset,count);
+    }
+    get sizeof(){ return this.type.sizeof * this.count; };
+};
+
+class StructType {
+    constructor(types,count=1) {
+        this.types = types, this.count = count;
+    }
+    accessView(obj,name,ptr) { obj[name+"*"] = ptr, obj[name] = ptr; };
+    construct(AB,offset=0,count=this.count) {
+        let struct = {}, scnt = 0;
+        for (let k in this.types) {
+            let soff = scnt; scnt += this.types[k].sizeof;
+            this.types[k].accessView(struct,k,this.types[k].construct(AB,offset+soff));
+        };
+        return struct;
+    }
+};
+
+
 
 // generic types 
-let U8 = (name="",length=1)=>{return new Field({type:Uint8Array,name,length});};
-let I8 = (name="",length=1)=>{return new Field({type:Int8Array,name,length});};
-let U16 = (name="",length=1)=>{return new Field({type:Uint16Array,name,length});};
-let I16 = (name="",length=1)=>{return new Field({type:Int16Array,name,length});};
-let U32 = (name="",length=1)=>{return new Field({type:Uint32Array,name,length});};
-let I32 = (name="",length=1)=>{return new Field({type:Int32Array,name,length});};
-let F32 = (name="",length=1)=>{return new Field({type:Float32Array,name,length});};
-let F64 = (name="",length=1)=>{return new Field({type:Float64Array,name,length});};
+let U8 = new ValueType({construct(AB,offset=0,count=1) {return new Uint8Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Uint8Array.BYTES_PER_ELEMENT;}});
+let I8 = new ValueType({construct(AB,offset=0,count=1) {return new Int8Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Int8Array.BYTES_PER_ELEMENT;}});
+let U16 = new ValueType({construct(AB,offset=0,count=1) {return new Uint16Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Uint16Array.BYTES_PER_ELEMENT;}});
+let I16 = new ValueType({construct(AB,offset=0,count=1) {return new Int16Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Int16Array.BYTES_PER_ELEMENT;}});
+let U32 = new ValueType({construct(AB,offset=0,count=1) {return new Uint32Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Uint32Array.BYTES_PER_ELEMENT;}});
+let I32 = new ValueType({construct(AB,offset=0,count=1) {return new Int32Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Int32Array.BYTES_PER_ELEMENT;}});
+let F32 = new ValueType({construct(AB,offset=0,count=1) {return new Float32Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Float32Array.BYTES_PER_ELEMENT;}});
+let F64 = new ValueType({construct(AB,offset=0,count=1) {return new Float64Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return Float64Array.BYTES_PER_ELEMENT;}});
 
 // new types 
-let U64 = (name="",length=1)=>{return new Field({type:BigUint64Array,name,length});};
-let I64 = (name="",length=1)=>{return new Field({type:BigInt64Array,name,length});};
+let U64 = new ValueType({construct(AB,offset=0,count=1) {return new BigUint64Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return BigUint64Array.BYTES_PER_ELEMENT;}});
+let I64 = new ValueType({construct(AB,offset=0,count=1) {return new BigInt64Array(AB,offset,count);},accessView(obj,name,ptr) { obj[name] = ptr; }, get sizeof(){return BigInt64Array.BYTES_PER_ELEMENT;}});
 
-// planned Int128 and Uint128 support
-let U128 = (name="",length=1)=>{return new Field({type:BigUint64Array,name,length});};
-let I128 = (name="",length=1)=>{return new Field({type:BigInt64Array,name,length});};
-
-export {Struct, Field, StructView, AccessView, U8, I8, U16, I16, U32, I32, F32, F64, U64, I64};
+export {StructType, ArrayType, ValueType, U8, I8, U16, I16, U32, I32, F32, F64, U64, I64};
