@@ -128,6 +128,7 @@ class StructType {
         };
         return struct;
     }
+    get sizeof(){ let scnt = 0; for (let k in this.types) { let soff = scnt; scnt += this.types[k].sizeof; }; return scnt; };
 };
 
 
